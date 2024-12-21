@@ -1,4 +1,8 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+
+Description: A platform designed to offer personalized news and content recommendations, leveraging artificial intelligence to enhance user experience. The project integrates AI to curate content based on user preferences and interaction patterns.
+
+
 
 ## Getting Started
 
