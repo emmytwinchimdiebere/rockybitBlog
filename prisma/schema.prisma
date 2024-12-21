@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+
+}
+
+datasource db {
+provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+  
+}
+
+
+model User {
+  id        String   @id @default(uuid()) // UUID for User
+  first_name     String?
+  email     String   @unique
+  role      Role     @default(USER)
+  posts     Post[]
+  comments  Comment[]
+  profile   Profile?
+  engagements Engagement[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bookmarks Bookmark[]
+  share Share[]
+}
+
+model Profile{
+  id   Int  @id @default(autoincrement())
+  bio  String?
+  socials String[]
+  user  User @relation(fields: [userId], references: [id])
+  userId String @unique
+  avatar  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+}
+
+model Post {
+  id          Int        @id @default(autoincrement())
+  title       String
+  content     String
+  summary     String
+  slug        String    @unique
+  published   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  categoryId  Int
+  authorId    String    // Referring to the User model with UUID
+  category    Category  @relation(fields: [categoryId], references: [id])
+  author      User      @relation(fields: [authorId], references: [id])
+  comments    Comment[]
+  tags        Tag[] 
+  imageUrl    String
+  engagements Engagement[]
+  bookmarks Bookmark[]
+  share  Share[]
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  posts     Post[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  postId    Int     
+  authorId  String   // Referring to the User model with UUID
+  post      Post     @relation(fields: [postId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+  parentId  Int?     // This allows for threaded comments
+  updatedAt DateTime @updatedAt
+  engagements Engagement[]
+  likes     Int      @default(0)
+  dislikes   Int        @default(0)
+ parent    Comment?  @relation("CommentToChildren", fields: [parentId], references: [id]) // Relating to the parent comment
+  children  Comment[] @relation("CommentToChildren") // Relating to child comments
+}
+
+
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  posts     Post[]  
+}
+
+model Engagement {
+  id        Int      @id @default(autoincrement())
+  type      EngagementType
+  postId    Int?
+  userId    String   // Referring to the User model with UUID
+  post      Post?    @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  commentId Int?
+  comment   Comment?  @relation(fields: [commentId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+  userId    String   // Referring to the User model with UUID
+  postId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+model Share {
+  id        Int      @id @default(autoincrement())
+  userId    String   // Referring to the User model with UUID
+  postId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+enum EngagementType {
+  LIKE
+  DISLIKE
+  SHARE
+  COMMENT
+  BOOKMARK
+}
